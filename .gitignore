@@ -1,0 +1,5 @@
+# Project exclude paths
+/qg-common-parent/qg-common-dto/target/
+/qg-common-parent/qg-common-module/target/
+/qg-common-parent/qg-common-service/target/
+/qg-common-parent/qg-common-utils/target/
