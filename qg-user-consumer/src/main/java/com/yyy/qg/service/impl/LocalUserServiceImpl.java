@@ -12,10 +12,12 @@ import com.yyy.qg.pojo.QgUser;
 import com.yyy.qg.service.LocalUserService;
 import com.yyy.qg.service.QgUserService;
 import com.yyy.qg.utils.EmptyUtils;
+import com.yyy.qg.utils.IdWorker;
 import com.yyy.qg.utils.RedisUtil;
 import com.yyy.qg.utils.TokenUtils;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -59,5 +61,24 @@ public class LocalUserServiceImpl implements LocalUserService {
         redisUtil.del(qgUser.getId());
         redisUtil.del(token);
         return ReturnResultUtils.returnSuccess();
+    }
+
+    @Override
+    public String createWxUserToken(String userInfoJsonstr) throws Exception {
+        JSONObject jsonObject = JSONObject.parseObject(userInfoJsonstr);
+        String openid = jsonObject.getString("openid");
+        QgUser qgUser = new QgUser();
+        qgUser.setId(IdWorker.getId());
+        qgUser.setWxUserId(openid);
+        qgUser.setRealName(jsonObject.getString("nickname"));
+        qgUser.setCreatedTime(new Date());
+        qgUser.setUpdatedTime(new Date());
+        //插入数据库完成
+        qgUserService.qdtxAddQgUser(qgUser);
+        //存入redis
+        String token = Constants.tokenPrefix + TokenUtils.createToken(qgUser.getId(),qgUser.getWxUserId());
+        redisUtil.setStr(qgUser.getId(),token,Constants.loginExpire);
+        redisUtil.setStr(token,JSONObject.toJSONString(qgUser),Constants.loginExpire);
+        return token;
     }
 }

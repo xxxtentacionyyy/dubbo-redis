@@ -8,4 +8,14 @@ public class Constants {
     public static final Long loginExpire=30L;
 
     public static final String tokenPrefix="token:";
+
+    public static final String goodsPrefix = "goods:";
+
+    public static final class StockStatus{
+        public static final Integer lock = 0;
+
+        public static final Integer paySuccess = 1;
+
+        public static final Integer payOvertime= 2;
+    }
 }
