@@ -54,4 +54,16 @@ public class QgGoodsTempStock implements Serializable {
     public  Date getUpdatedTime(){
         return this.updatedTime;
     }
+
+    @Override
+    public String toString() {
+        return "QgGoodsTempStock{" +
+                "id='" + id + '\'' +
+                ", goodsId='" + goodsId + '\'' +
+                ", userId='" + userId + '\'' +
+                ", status=" + status +
+                ", createdTime=" + createdTime +
+                ", updatedTime=" + updatedTime +
+                '}';
+    }
 }

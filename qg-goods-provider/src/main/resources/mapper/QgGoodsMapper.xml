@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yyy.qg.dao.QgGoodsDao">
+
+    <resultMap id="BaseResultMap" type="com.yyy.qg.pojo.QgGoods">
+            <id property="id" column="id" jdbcType="VARCHAR"/>
+            <result property="goodsImg" column="goodsImg" jdbcType="VARCHAR"/>
+            <result property="goodsName" column="goodsName" jdbcType="VARCHAR"/>
+            <result property="price" column="price" jdbcType="DECIMAL"/>
+            <result property="stock" column="stock" jdbcType="INTEGER"/>
+            <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
+            <result property="updatedTime" column="updatedTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,goodsImg,goodsName,
+        price,stock,createdTime,
+        updatedTime
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from qg_goods
+        where  id = #{id,jdbcType=VARCHAR} 
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        delete from qg_goods
+        where  id = #{id,jdbcType=VARCHAR} 
+    </delete>
+    <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.yyy.qg.pojo.QgGoods" useGeneratedKeys="true">
+        insert into qg_goods
+        ( id,goodsImg,goodsName
+        ,price,stock,createdTime
+        ,updatedTime)
+        values (#{id,jdbcType=VARCHAR},#{goodsimg,jdbcType=VARCHAR},#{goodsname,jdbcType=VARCHAR}
+        ,#{price,jdbcType=DECIMAL},#{stock,jdbcType=INTEGER},#{createdTime,jdbcType=TIMESTAMP}
+        ,#{updatedTime,jdbcType=TIMESTAMP})
+    </insert>
+    <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.yyy.qg.pojo.QgGoods" useGeneratedKeys="true">
+        insert into qg_goods
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+                <if test="id != null and id != ''">id,</if>
+                <if test="goodsImg != null and goodsImg != ''">goodsImg,</if>
+                <if test="goodsName != null and goodsName != ''">goodsName,</if>
+                <if test="price != null">price,</if>
+                <if test="stock != null">stock,</if>
+                <if test="createdTime != null">createdTime,</if>
+                <if test="updatedTime != null">updatedTime,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+                <if test="id != null and id != ''">id = #{id,jdbcType=VARCHAR},</if>
+                <if test="goodsImg != null and goodsImg != ''">goodsImg = #{goodsImg,jdbcType=VARCHAR},</if>
+                <if test="goodsName != null and goodsName != ''">goodsName = #{goodsName,jdbcType=VARCHAR},</if>
+                <if test="price != null">price = #{price,jdbcType=DECIMAL},</if>
+                <if test="stock != null">stock = #{stock,jdbcType=INTEGER},</if>
+                <if test="createdTime != null">createdTime = #{createdTime,jdbcType=TIMESTAMP},</if>
+                <if test="updatedTime != null">updatedTime = #{updatedTime,jdbcType=TIMESTAMP},</if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.yyy.qg.pojo.QgGoods">
+        update qg_goods
+        <set>
+                <if test="goodsImg != null and goodsImg != ''">
+                    goodsImg = #{goodsimg,jdbcType=VARCHAR},
+                </if>
+                <if test="goodsName != null and goodsName != ''">
+                    goodsName = #{goodsname,jdbcType=VARCHAR},
+                </if>
+                <if test="price != null">
+                    price = #{price,jdbcType=DECIMAL},
+                </if>
+                <if test="stock != null">
+                    stock = #{stock,jdbcType=INTEGER},
+                </if>
+                <if test="createdTime != null">
+                    createdTime = #{createdTime,jdbcType=TIMESTAMP},
+                </if>
+                <if test="updatedTime != null">
+                    updatedTime = #{updatedTime,jdbcType=TIMESTAMP},
+                </if>
+        </set>
+        where   id = #{id,jdbcType=VARCHAR} 
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.yyy.qg.pojo.QgGoods">
+        update qg_goods
+        set 
+            goodsImg =  #{goodsimg,jdbcType=VARCHAR},
+            goodsName =  #{goodsname,jdbcType=VARCHAR},
+            price =  #{price,jdbcType=DECIMAL},
+            stock =  #{stock,jdbcType=INTEGER},
+            createdTime =  #{createdTime,jdbcType=TIMESTAMP},
+            updatedTime =  #{updatedTime,jdbcType=TIMESTAMP}
+        where   id = #{id,jdbcType=VARCHAR} 
+    </update>
+</mapper>

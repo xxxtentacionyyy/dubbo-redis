@@ -7,14 +7,16 @@ import com.yyy.qg.dto.ReturnResultUtils;
 import com.yyy.qg.service.LocalUserService;
 import com.yyy.qg.utils.KafkaUtil;
 import com.yyy.qg.utils.UrlUtils;
+import com.yyy.qg.utils.YYY;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 
-@RestController
+@Controller
 @RequestMapping("/api")
 public class UserController {
 
@@ -55,6 +57,7 @@ public class UserController {
     public String callBack(String code) throws Exception{
         //获取access_token的json字符串
         String accessToken = UrlUtils.loadURL(wxConfig.reqAccessTokenUrl(code));
+        YYY.print("开始向kafka发送日志>>>>>>>>>>>>>>>>>>");
         //写入日志
         kafkaUtil.sendInfoMessage(accessToken);
         JSONObject jsonObject = JSONObject.parseObject(accessToken);
@@ -64,6 +67,7 @@ public class UserController {
         String userInfoJson = UrlUtils.loadURL(wxConfig.reqUserInfoUrl(access_token, openid));
         //写入日志
         kafkaUtil.sendInfoMessage(userInfoJson);
+        YYY.print("日志写入完毕>>>>>>>>>>>>>>>>>>>>>>");
         String wxUserToken = localUserService.createWxUserToken(userInfoJson);
 //跳转至前端
         return "redirect:"+wxConfig.getSuccessUrl()+"?token="+wxUserToken;

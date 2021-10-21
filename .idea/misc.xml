@@ -15,6 +15,7 @@
         <option value="$PROJECT_DIR$/qg-user-consumer/pom.xml" />
         <option value="$PROJECT_DIR$/qg-goods-provider/pom.xml" />
         <option value="$PROJECT_DIR$/qg-goods-consumer/pom.xml" />
+        <option value="$PROJECT_DIR$/qg-demo/pom.xml" />
       </list>
     </option>
   </component>

@@ -1,12 +1,15 @@
 package com.yyy.qg.utils;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class RedisUtil {
@@ -48,7 +51,7 @@ public class RedisUtil {
      * @param timeOut
      */
     public void setStr(String key, String val , Long timeOut){
-        valOpsStr.set(key,val,timeOut);
+        valOpsStr.set(key,val,timeOut,TimeUnit.MINUTES);
     }
 
     /**
@@ -77,6 +80,7 @@ public class RedisUtil {
         valOpsObj.set(o1, o2);
     }
 
+
     /**
      * 删除Obj缓存
      * @param o
@@ -84,4 +88,33 @@ public class RedisUtil {
     public void delObj(Object o){
         redisTemplate.delete(o);
     }
+
+    /***
+     * 加锁的方法
+     * @return
+     */
+    public boolean lock(String key,Long expire){
+        RedisConnection redisConnection=redisTemplate.getConnectionFactory().getConnection();
+//设置序列化方法
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new StringRedisSerializer());
+        if(redisConnection.setNX(key.getBytes(),new byte[]{1})){
+            redisTemplate.expire(key,expire, TimeUnit.SECONDS);
+            redisConnection.close();
+            return true;
+        }else{
+            redisConnection.close();
+            return false;
+        }
+    }
+    /***
+     * 解锁的方法
+     * @param key
+     */
+    public void unLock(String key){
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new StringRedisSerializer());
+        redisTemplate.delete(key);
+    }
+
 }

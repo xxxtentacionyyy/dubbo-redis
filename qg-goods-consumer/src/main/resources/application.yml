@@ -16,6 +16,12 @@ spring:
       max-active: 8
       min-idle: 0
     timeout: 50000
+  activemq:
+    broker-url: tcp://192.168.101.4:61616?jms.optimizeAcknowledge=true&jms.optimizeAcknowledgeTimeOut=30000&jms.redeliveryPolicy.maximumRedeliveries=10
+    user: admin
+    password: admin
+    packages:
+      trust-all: true
   kafka:
     producer:
       bootstrap-servers: 192.168.101.4:9092

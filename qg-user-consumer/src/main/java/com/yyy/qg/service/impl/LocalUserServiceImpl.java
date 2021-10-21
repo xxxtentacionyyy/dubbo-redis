@@ -11,10 +11,7 @@ import com.yyy.qg.exception.UserException;
 import com.yyy.qg.pojo.QgUser;
 import com.yyy.qg.service.LocalUserService;
 import com.yyy.qg.service.QgUserService;
-import com.yyy.qg.utils.EmptyUtils;
-import com.yyy.qg.utils.IdWorker;
-import com.yyy.qg.utils.RedisUtil;
-import com.yyy.qg.utils.TokenUtils;
+import com.yyy.qg.utils.*;
 
 import javax.annotation.Resource;
 import java.util.Date;
@@ -65,6 +62,7 @@ public class LocalUserServiceImpl implements LocalUserService {
 
     @Override
     public String createWxUserToken(String userInfoJsonstr) throws Exception {
+        YYY.print("获取微信用户信息成功，下一步创建Token>>>>>>>>>>>>>>>>>>");
         JSONObject jsonObject = JSONObject.parseObject(userInfoJsonstr);
         String openid = jsonObject.getString("openid");
         QgUser qgUser = new QgUser();
@@ -75,10 +73,12 @@ public class LocalUserServiceImpl implements LocalUserService {
         qgUser.setUpdatedTime(new Date());
         //插入数据库完成
         qgUserService.qdtxAddQgUser(qgUser);
+        YYY.print("Token创建成功，执行用户数据插入数据库成功>>>>>>>>>>>>");
         //存入redis
         String token = Constants.tokenPrefix + TokenUtils.createToken(qgUser.getId(),qgUser.getWxUserId());
         redisUtil.setStr(qgUser.getId(),token,Constants.loginExpire);
         redisUtil.setStr(token,JSONObject.toJSONString(qgUser),Constants.loginExpire);
+        YYY.print("token存入redis");
         return token;
     }
 }

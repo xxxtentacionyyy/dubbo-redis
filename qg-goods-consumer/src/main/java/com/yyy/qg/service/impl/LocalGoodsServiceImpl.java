@@ -10,14 +10,14 @@ import com.yyy.qg.pojo.QgGoods;
 import com.yyy.qg.pojo.QgGoodsTempStock;
 import com.yyy.qg.pojo.QgUser;
 import com.yyy.qg.pojo.vo.GoodsVo;
+import com.yyy.qg.pojo.vo.Message;
 import com.yyy.qg.service.LocalGoodsService;
 import com.yyy.qg.service.QgGoodsService;
 import com.yyy.qg.service.QgGoodsTempStockService;
-import com.yyy.qg.utils.EmptyUtils;
-import com.yyy.qg.utils.IdWorker;
-import com.yyy.qg.utils.RedisUtil;
-import com.yyy.qg.utils.TokenUtils;
+import com.yyy.qg.utils.*;
 import org.springframework.beans.BeanUtils;
+import org.springframework.jms.annotation.JmsListener;
+import org.springframework.jms.listener.adapter.MessagingMessageListenerAdapter;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -31,7 +31,11 @@ public class LocalGoodsServiceImpl implements LocalGoodsService {
     @Reference//远程调用对外暴露的接口
     private QgGoodsTempStockService qgGoodsTempStockService;
     @Resource
+    private ActiveMQUtils activeMQUtils;
+    @Resource
     private RedisUtil redisUtil;
+
+    private Long lockExpire = 60L;
     @Override
     public ReturnResult queryGoodsById(String id) throws Exception {
         GoodsVo goodsVo = null;
@@ -43,20 +47,17 @@ public class LocalGoodsServiceImpl implements LocalGoodsService {
             goodsVo = new GoodsVo();
             QgGoods qgGoods = qgGoodsService.getQgGoodsById(id);
             BeanUtils.copyProperties(qgGoods,goodsVo);
-//goodsVo.setGoodsImg(qgGoods.getGoodsImg());
-//计算当前的库存，需要查询出已经被购买过几个（状态1）和等待支付有几个（状态1）
+            //goodsVo.setGoodsImg(qgGoods.getGoodsImg());
+            // 计算当前的库存，需要查询出已经被购买过几个（状态1）和等待支付有几个（状态0）
             Map<String, Object> map = new HashMap<String, Object>();
             map.put("goodsId",id);
             map.put("active",1);
-            Integer qgGoodsTempStockCountByMap =
-                    qgGoodsTempStockService.getQgGoodsTempStockCountByMap(map);
+            Integer qgGoodsTempStockCountByMap = qgGoodsTempStockService.getQgGoodsTempStockCountByMap(map);
 //计算当前库存
-            Integer currentStock = goodsVo.getStock() -
-                    qgGoodsTempStockCountByMap;
+            Integer currentStock = goodsVo.getStock() - qgGoodsTempStockCountByMap;
             goodsVo.setCurrentStock(currentStock);
 //存入redis
-//String token = Constants.goodsPrefix +
-            TokenUtils.createToken(id,goodsVo.getId());
+//String token = Constants.goodsPrefix +TokenUtils.createToken(id,goodsVo.getId());
             redisUtil.setStr(Constants.goodsPrefix+id,JSONObject.toJSONString(goodsVo));
 //redisUtil.setStr(token, JSONObject.toJSONString(goodsVo));
         }else{
@@ -64,43 +65,74 @@ public class LocalGoodsServiceImpl implements LocalGoodsService {
         }
         return ReturnResultUtils.returnSuccess(goodsVo);
     }
-    @Override
-    public ReturnResult getGoods(String token, String goodsId) throws Exception
-    {
-//1.根据token获取用户
-        String str = redisUtil.getStr(token);
-        QgUser qgUser = JSONObject.parseObject(str, QgUser.class);
-//2.查看用户是否已经抢购过该商品，如果抢购成功未支付，或者已经支付成功，则不能抢购
-//需要查询出已经被购买过几个（状态1）和等待支付有几个（状态1）
-        Map<String, Object> map = new HashMap<String,Object>();
-        map.put("goodsId",goodsId);
-        map.put("active",1);
-        map.put("userId",qgUser.getId());
-        Integer qgGoodsTempStockCountByMap =
-                qgGoodsTempStockService.getQgGoodsTempStockCountByMap(map);
-        if(qgGoodsTempStockCountByMap > 0){
-            return
-                    ReturnResultUtils.returnFail(GoodsException.GOODS_REPEAT_GET.getCode(),GoodsException.GOODS_REPEAT_GET.getMessage());
+    @JmsListener(destination = Constants.ActiveMQMessage.getMessage)
+    public void getGoods(Message message) throws Exception {
+        //1.根据token获取用户
+        String goodsId = message.getGoodsId();
+        String userId = message.getUserId();
+        // 判断用户是否上锁
+        while(!redisUtil.lock(Constants.lockPrefix + goodsId,lockExpire)){
+            Thread.sleep(300);
         }
-//3.判断库存是否大于0，如果大于0进入抢购环节
+
+        //3.判断库存是否大于0，如果大于0进入抢购环节
         String str1 = redisUtil.getStr(Constants.goodsPrefix + goodsId);
         GoodsVo goodsVo = JSONObject.parseObject(str1, GoodsVo.class);
-        if(goodsVo.getCurrentStock() <= 0){
-            return
-                    ReturnResultUtils.returnFail(GoodsException.GOODS_IS_CLEAR.getCode(),GoodsException.GOODS_IS_CLEAR.getMessage());
-        }
-//4.更新库存， 临时库存表、更新redis
+        // 代表之前没有抢成功，并且库存充足，正式抢购成功
+        // 4.更新库存， 临时库存表、更新redis
         QgGoodsTempStock qgGoodsTempStock = new QgGoodsTempStock();
         qgGoodsTempStock.setId(IdWorker.getId());
-        qgGoodsTempStock.setUserId(qgUser.getId());
+        qgGoodsTempStock.setUserId(userId);
         qgGoodsTempStock.setGoodsId(goodsVo.getId());
         qgGoodsTempStock.setStatus(Constants.StockStatus.lock);//0
         qgGoodsTempStock.setCreatedTime(new Date());
         qgGoodsTempStock.setUpdatedTime(new Date());
         qgGoodsTempStockService.qdtxAddQgGoodsTempStock(qgGoodsTempStock);
         goodsVo.setCurrentStock(goodsVo.getCurrentStock() -1);
-//redis
+        //redis
         redisUtil.setStr(Constants.goodsPrefix + goodsId, JSONObject.toJSONString(goodsVo));
+        redisUtil.setStr(Constants.goodsPrefix + goodsId + ":" + userId,Constants.GetGoodsStatus.getSuccess);
+        redisUtil.unLock(Constants.lockPrefix + goodsId);
+    }
+
+    @Override
+    public ReturnResult goodsGetMessage(String token, String goodsId) throws Exception {
+        String str = redisUtil.getStr(token);
+        QgUser qgUser = JSONObject.parseObject(str, QgUser.class);
+        Message message = new Message();
+        message.setGoodsId(goodsId);
+        message.setUserId(qgUser.getId());
+        // 判断用户是否之前抢到过
+        String flag = redisUtil.getStr(Constants.goodsPrefix + goodsId + ":" + qgUser.getId());
+        String str1 = redisUtil.getStr(Constants.goodsPrefix + goodsId);
+        GoodsVo goodsVo = JSONObject.parseObject(str1, GoodsVo.class);
+        // 如果抢到了，就不用发送消息了
+        if(EmptyUtils.isNotEmpty(flag) && flag.equals(Constants.GetGoodsStatus.getSuccess)){
+            // 因为之前抢到过，现在又抢到了，所以解锁，继续让别的人来抢
+            redisUtil.unLock(Constants.lockPrefix + goodsId);
+            redisUtil.setStr(Constants.goodsPrefix + goodsId + ":" + qgUser.getId(),Constants.GetGoodsStatus.getFail);
+            return ReturnResultUtils.returnFail(GoodsException.GOODS_REPEAT_GET.getCode(),GoodsException.GOODS_REPEAT_GET.getMessage());
+        }else if(goodsVo.getCurrentStock() <= 0){
+            redisUtil.unLock(Constants.lockPrefix + goodsId);
+            redisUtil.setStr(Constants.goodsPrefix + goodsId + ":" + qgUser.getId(),Constants.GetGoodsStatus.getFail);
+            return ReturnResultUtils.returnFail(GoodsException.GOODS_IS_CLEAR.getCode(), GoodsException.GOODS_IS_CLEAR.getMessage());
+        }
+        // 发送消息
+        activeMQUtils.sendQueueMessage(Constants.ActiveMQMessage.getMessage,message);
         return ReturnResultUtils.returnSuccess();
+    }
+
+    @Override
+    public ReturnResult flushGetGoodsStatus(String token, String goodsId) {
+        String str = redisUtil.getStr(token);
+        QgUser qgUser = JSONObject.parseObject(str, QgUser.class);
+        String flag = redisUtil.getStr(Constants.goodsPrefix + goodsId + ":" + qgUser.getId());
+        if (EmptyUtils.isEmpty(flag)){
+            return ReturnResultUtils.returnSuccess();
+        }else if(EmptyUtils.isNotEmpty(flag) && flag.equals("0")){
+            return ReturnResultUtils.returnSuccess();
+        }else{
+            return ReturnResultUtils.returnFail(GoodsException.GOODS_REPEAT_GET.getCode(), GoodsException.GOODS_REPEAT_GET.getMessage());
+        }
     }
 }

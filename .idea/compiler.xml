@@ -6,20 +6,22 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="qg-goods-provider" />
         <module name="qg-common-utils" />
         <module name="dubbo-redis" />
-        <module name="qg-common-service" />
-        <module name="qg-goods-provider" />
         <module name="qg-user-consumer" />
+        <module name="qg-demo" />
+        <module name="qg-common-service" />
         <module name="qg-common-module" />
+        <module name="qg-goods-consumer" />
         <module name="springboot-redis-01" />
         <module name="qg-user-provider" />
-        <module name="qg-goods-consumer" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="qg-demo" options="" />
       <module name="qg-goods-consumer" options="" />
       <module name="qg-goods-provider" options="" />
       <module name="qg-user-consumer" options="" />

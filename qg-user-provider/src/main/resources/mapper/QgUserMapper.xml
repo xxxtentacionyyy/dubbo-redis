@@ -86,6 +86,7 @@
     </select>
     <insert id="insertQgUser" parameterType="com.yyy.qg.pojo.QgUser">
         insert into qg_user(
+            id,
             phone,
             password,
             wxUserId,
@@ -93,6 +94,7 @@
             createdTime,
             updatedTime)
         values(
+                  #{id},
                   #{phone},
                   #{password},
                   #{wxUserId},

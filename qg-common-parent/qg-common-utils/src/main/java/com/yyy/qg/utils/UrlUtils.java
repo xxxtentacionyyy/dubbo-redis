@@ -19,8 +19,7 @@ public class UrlUtils {
     public static String loadURL(String urlStr){
         try{
             URL url = new URL(urlStr);
-            HttpURLConnection urlConnection =
-                    (HttpURLConnection)url.openConnection();
+            HttpURLConnection urlConnection = (HttpURLConnection)url.openConnection();
             urlConnection.setRequestMethod("GET");
             urlConnection.connect();
             InputStream inputStream = urlConnection.getInputStream();

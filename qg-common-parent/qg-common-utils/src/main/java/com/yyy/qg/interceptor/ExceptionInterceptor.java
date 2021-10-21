@@ -7,6 +7,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.yyy.qg.dto.ReturnResult;
 import com.yyy.qg.dto.ReturnResultUtils;
 import com.yyy.qg.dto.exception.CommonException;
+import com.yyy.qg.utils.YYY;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -41,6 +42,7 @@ public class ExceptionInterceptor implements HandlerInterceptor {
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object o, Exception e) throws Exception {
         //出现异常进行处理
         if(EmptyUtils.isNotEmpty(e)){
+            YYY.print(e.getMessage());
             response.setContentType("text/html;charset=UTF-8");
             PrintUtil printUtil=new PrintUtil(response);
             ReturnResult returnResult= ReturnResultUtils.returnFail(CommonException.SYSTEM_EXCEPTION.getCode(),CommonException.SYSTEM_EXCEPTION.getMessage());

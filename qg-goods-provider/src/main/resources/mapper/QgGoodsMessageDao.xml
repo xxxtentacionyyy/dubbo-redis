@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yyy.qg.dao.QgGoodsMessageDao">
+
+    <resultMap type="com.yyy.qg.pojo.QgGoodsMessage" id="QgGoodsMessageMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="userId" column="userId" jdbcType="VARCHAR"/>
+        <result property="goodsId" column="goodsId" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="VARCHAR"/>
+        <result property="amount" column="amount" jdbcType="VARCHAR"/>
+        <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
+        <result property="updatedTime" column="updatedTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="QgGoodsMessageMap">
+        select id,
+               userId,
+               goodsId,
+               status,
+               amount,
+               createdTime,
+               updatedTime
+        from qg_goods_message
+        where id = #{id}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="QgGoodsMessageMap">
+        select
+        id, userId, goodsId, status, amount, createdTime, updatedTime
+        from qg_goods_message
+        <where>
+            <if test="id != null and id != ''">
+                and id = #{id}
+            </if>
+            <if test="userId != null and userId != ''">
+                and userId = #{userId}
+            </if>
+            <if test="goodsId != null and goodsId != ''">
+                and goodsId = #{goodsId}
+            </if>
+            <if test="status != null and status != ''">
+                and status = #{status}
+            </if>
+            <if test="amount != null">
+                and amount = #{amount}
+            </if>
+            <if test="createdTime != null">
+                and createdTime = #{createdTime}
+            </if>
+            <if test="updatedTime != null">
+                and updatedTime = #{updatedTime}
+            </if>
+        </where>
+        limit #{pageable.offset}, #{pageable.pageSize}
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from qg_goods_message
+        <where>
+            <if test="id != null and id != ''">
+                and id = #{id}
+            </if>
+            <if test="userId != null and userId != ''">
+                and userId = #{userId}
+            </if>
+            <if test="goodsId != null and goodsId != ''">
+                and goodsId = #{goodsId}
+            </if>
+            <if test="status != null and status != ''">
+                and status = #{status}
+            </if>
+            <if test="amount != null">
+                and amount = #{amount}
+            </if>
+            <if test="createdTime != null">
+                and createdTime = #{createdTime}
+            </if>
+            <if test="updatedTime != null">
+                and updatedTime = #{updatedTime}
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into qg_goods_message(userId, goodsId, status, amount, createdTime, updatedTime)
+        values (#{userId}, #{goodsId}, #{status}, #{amount}, #{createdTime}, #{updatedTime})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into qg_goods_message(userId, goodsId, status, amount, createdTime, updatedTime)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.userId}, #{entity.goodsId}, #{entity.status}, #{entity.amount}, #{entity.createdTime},
+            #{entity.updatedTime})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into qg_goods_message(userId, goodsId, status, amount, createdTime, updatedTime)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.userId}, #{entity.goodsId}, #{entity.status}, #{entity.amount}, #{entity.createdTime},
+            #{entity.updatedTime})
+        </foreach>
+        on duplicate key update
+        userId = values(userId),
+        goodsId = values(goodsId),
+        status = values(status),
+        amount = values(amount),
+        createdTime = values(createdTime),
+        updatedTime = values(updatedTime)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update qg_goods_message
+        <set>
+            <if test="userId != null and userId != ''">
+                userId = #{userId},
+            </if>
+            <if test="goodsId != null and goodsId != ''">
+                goodsId = #{goodsId},
+            </if>
+            <if test="status != null and status != ''">
+                status = #{status},
+            </if>
+            <if test="amount != null">
+                amount = #{amount},
+            </if>
+            <if test="createdTime != null">
+                createdTime = #{createdTime},
+            </if>
+            <if test="updatedTime != null">
+                updatedTime = #{updatedTime},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete
+        from qg_goods_message
+        where id = #{id}
+    </delete>
+
+</mapper>
+
