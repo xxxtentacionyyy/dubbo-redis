@@ -2,20 +2,25 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
       <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="qg-goods-provider" />
         <module name="qg-common-utils" />
+        <module name="qg-common-service" />
+        <module name="qg-common-module" />
+        <module name="qg-user-provider" />
+        <module name="qg-pay-provider" />
+        <module name="qg-order-consumer" />
+        <module name="qg-goods-provider" />
         <module name="dubbo-redis" />
         <module name="qg-user-consumer" />
         <module name="qg-demo" />
-        <module name="qg-common-service" />
-        <module name="qg-common-module" />
+        <module name="qg-pay-consumer" />
         <module name="qg-goods-consumer" />
+        <module name="qg-order-provider" />
         <module name="springboot-redis-01" />
-        <module name="qg-user-provider" />
       </profile>
     </annotationProcessing>
   </component>
@@ -24,6 +29,9 @@
       <module name="qg-demo" options="" />
       <module name="qg-goods-consumer" options="" />
       <module name="qg-goods-provider" options="" />
+      <module name="qg-order-consumer" options="" />
+      <module name="qg-pay-consumer" options="" />
+      <module name="qg-pay-provider" options="" />
       <module name="qg-user-consumer" options="" />
       <module name="qg-user-provider" options="" />
       <module name="springboot-redis-01" options="" />

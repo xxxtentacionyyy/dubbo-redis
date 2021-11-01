@@ -28,6 +28,7 @@ public class LocalUserServiceImpl implements LocalUserService {
     @Override
     public ReturnResult validateToken(String phone, String password) throws Exception {
         String token = null;
+        Map<String, Object>map = new HashMap<>();
         QgUser qgUser = qgUserService.queryQgUserByPhoneAndPwd(phone, password);
         ReturnResult result = null;
         // 判断是否登陆过
@@ -42,10 +43,11 @@ public class LocalUserServiceImpl implements LocalUserService {
             token = Constants.tokenPrefix + TokenUtils.createToken(qgUser.getId(), qgUser.getPhone());
             redisUtil.setStr(qgUser.getId(),token,Constants.loginExpire);
             redisUtil.setStr(token, JSON.toJSONString(qgUser),Constants.loginExpire);
-            Map<String, Object> map = new HashMap<>();
             map.put("token",token);
+            map.put("code",0);
             result = ReturnResultUtils.returnSuccess(map);
         }else{
+            map.put("code",-1);
             result = ReturnResultUtils.returnFail(UserException.USER_PASSWORD_ERROR.getCode(), UserException.USER_PASSWORD_ERROR.getMessage());
         }
         return result;
@@ -71,10 +73,19 @@ public class LocalUserServiceImpl implements LocalUserService {
         qgUser.setRealName(jsonObject.getString("nickname"));
         qgUser.setCreatedTime(new Date());
         qgUser.setUpdatedTime(new Date());
+        Map<String, Object> map = new HashMap<>();
+        map.put("wxUserId",openid);
+        Integer count = qgUserService.getQgUserCountByMap(map);
         //插入数据库完成
-        qgUserService.qdtxAddQgUser(qgUser);
+        if (count < 1 ){
+            qgUserService.qdtxAddQgUser(qgUser);
+        }
         YYY.print("Token创建成功，执行用户数据插入数据库成功>>>>>>>>>>>>");
         //存入redis
+        if (EmptyUtils.isNotEmpty(redisUtil.getStr(qgUser.getId()))){
+            redisUtil.del(redisUtil.getStr(qgUser.getId()));
+            redisUtil.del(qgUser.getId());
+        }
         String token = Constants.tokenPrefix + TokenUtils.createToken(qgUser.getId(),qgUser.getWxUserId());
         redisUtil.setStr(qgUser.getId(),token,Constants.loginExpire);
         redisUtil.setStr(token,JSONObject.toJSONString(qgUser),Constants.loginExpire);

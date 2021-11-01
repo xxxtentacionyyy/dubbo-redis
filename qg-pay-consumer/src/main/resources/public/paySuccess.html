@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head>
+		<meta charset="UTF-8"/>
+		<title></title>
+		<link rel="stylesheet" th:href="@{/css/public.css}" />
+		<link rel="stylesheet" type="text/css" th:href="@{/css/paySuccess.css}"/>
+	</head>
+	<body>
+		<div class="box">
+			<div class="chengGongZhiFu">
+				<div class="header">
+					<div class="title">
+						<div class="miaoSha left"></div>
+						<div class="nav right">
+							<div><a href="javascript:void(0);" onclick="goIndex()">抢购专区</a></div>
+							<div><a href="javascript:void(0);" onclick="goOrderList()">订单页</a></div>
+							<div id="loginMenu"><a href="javascript:void(0);" onclick="loginOut();">退出</a></div>
+						</div>
+					</div>
+				</div>
+				<div class="content">
+					<img th:src="@{/img/weixin.png}" />
+					<p>您已成功付款￥<span class="x_jiaGe" id="amount"></span>元&nbsp;&nbsp;支付订单号：<span class="zhiFuDingDanHao" id="orderNo"></span></p>
+					<div class="huiShouYe"><a href="javascript:void(0);" onclick="goIndex()">回首页</a></div>
+				</div>
+			</div>
+		</div>
+		<script th:src="@{/js/jquery-2.1.1.min.js}"></script>
+		<script th:src="@{/js/common.js}"></script>
+		<script th:src="@{/js/checkLogin.js}"></script>
+		<script th:src="@{/js/paySuccess.js}"></script>
+	</body>
+</html>

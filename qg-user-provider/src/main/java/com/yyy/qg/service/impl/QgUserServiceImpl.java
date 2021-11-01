@@ -4,9 +4,9 @@ import com.alibaba.dubbo.config.annotation.Service;
 import com.yyy.qg.mapper.QgUserMapper;
 import com.yyy.qg.pojo.QgUser;
 import com.yyy.qg.service.QgUserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.Map;
 @Service(interfaceClass = QgUserService.class)
 @Component
 public class QgUserServiceImpl implements QgUserService {
-    @Resource
+    @Autowired
     private QgUserMapper qgUserMapper;
     public QgUser getQgUserById(String id)throws Exception{
         return qgUserMapper.getQgUserById(id);
@@ -57,5 +57,6 @@ public class QgUserServiceImpl implements QgUserService {
         param.put("password",pwd);
         return qgUserMapper.queryQgUserByPhoneAndPwd(param);
     }
+
 
 }

@@ -6,14 +6,10 @@ import com.yyy.qg.common.Constants;
 import com.yyy.qg.dto.ReturnResult;
 import com.yyy.qg.dto.ReturnResultUtils;
 import com.yyy.qg.exception.GoodsException;
-import com.yyy.qg.pojo.QgGoods;
-import com.yyy.qg.pojo.QgGoodsTempStock;
-import com.yyy.qg.pojo.QgUser;
+import com.yyy.qg.pojo.*;
 import com.yyy.qg.pojo.vo.GoodsVo;
-import com.yyy.qg.pojo.vo.Message;
-import com.yyy.qg.service.LocalGoodsService;
-import com.yyy.qg.service.QgGoodsService;
-import com.yyy.qg.service.QgGoodsTempStockService;
+
+import com.yyy.qg.service.*;
 import com.yyy.qg.utils.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.jms.annotation.JmsListener;
@@ -23,6 +19,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 @Service
 public class LocalGoodsServiceImpl implements LocalGoodsService {
@@ -34,6 +31,10 @@ public class LocalGoodsServiceImpl implements LocalGoodsService {
     private ActiveMQUtils activeMQUtils;
     @Resource
     private RedisUtil redisUtil;
+    @Reference
+    private QgOrderService qgOrderService;
+    @Reference
+    QgGoodsMessageService qgGoodsMessageService;
 
     private Long lockExpire = 60L;
     @Override
@@ -66,7 +67,7 @@ public class LocalGoodsServiceImpl implements LocalGoodsService {
         return ReturnResultUtils.returnSuccess(goodsVo);
     }
     @JmsListener(destination = Constants.ActiveMQMessage.getMessage)
-    public void getGoods(Message message) throws Exception {
+    public void getGoods(QgGoodsMessage message) throws Exception {
         //1.根据token获取用户
         String goodsId = message.getGoodsId();
         String userId = message.getUserId();
@@ -89,6 +90,20 @@ public class LocalGoodsServiceImpl implements LocalGoodsService {
         qgGoodsTempStock.setUpdatedTime(new Date());
         qgGoodsTempStockService.qdtxAddQgGoodsTempStock(qgGoodsTempStock);
         goodsVo.setCurrentStock(goodsVo.getCurrentStock() -1);
+        // 抢购下单操作（随便写一下）
+        QgOrder qgOrder = new QgOrder();
+        qgOrder.setId(IdWorker.getId());
+        qgOrder.setStatus(Constants.StockStatus.lock);
+        qgOrder.setGoodsId(qgGoodsTempStock.getGoodsId());
+        qgOrder.setAmount(56.7);
+        qgOrder.setStockId(qgGoodsTempStock.getId());
+        qgOrder.setNum(1);
+        qgOrder.setUserId(qgGoodsTempStock.getUserId());
+        qgOrder.setOrderNo(IdWorker.getId());
+        qgOrder.setCreatedTime(new Date());
+        qgOrder.setUpdatedTime(new Date());
+        qgOrderService.qdtxAddQgOrder(qgOrder);
+
         //redis
         redisUtil.setStr(Constants.goodsPrefix + goodsId, JSONObject.toJSONString(goodsVo));
         redisUtil.setStr(Constants.goodsPrefix + goodsId + ":" + userId,Constants.GetGoodsStatus.getSuccess);
@@ -99,24 +114,30 @@ public class LocalGoodsServiceImpl implements LocalGoodsService {
     public ReturnResult goodsGetMessage(String token, String goodsId) throws Exception {
         String str = redisUtil.getStr(token);
         QgUser qgUser = JSONObject.parseObject(str, QgUser.class);
-        Message message = new Message();
+        QgGoodsMessage message = new QgGoodsMessage();
         message.setGoodsId(goodsId);
         message.setUserId(qgUser.getId());
         // 判断用户是否之前抢到过
         String flag = redisUtil.getStr(Constants.goodsPrefix + goodsId + ":" + qgUser.getId());
         String str1 = redisUtil.getStr(Constants.goodsPrefix + goodsId);
         GoodsVo goodsVo = JSONObject.parseObject(str1, GoodsVo.class);
+        message.setId(IdWorker.getId());
+        message.setAmount(goodsVo.getPrice());
         // 如果抢到了，就不用发送消息了
         if(EmptyUtils.isNotEmpty(flag) && flag.equals(Constants.GetGoodsStatus.getSuccess)){
             // 因为之前抢到过，现在又抢到了，所以解锁，继续让别的人来抢
             redisUtil.unLock(Constants.lockPrefix + goodsId);
-            redisUtil.setStr(Constants.goodsPrefix + goodsId + ":" + qgUser.getId(),Constants.GetGoodsStatus.getFail);
             return ReturnResultUtils.returnFail(GoodsException.GOODS_REPEAT_GET.getCode(),GoodsException.GOODS_REPEAT_GET.getMessage());
         }else if(goodsVo.getCurrentStock() <= 0){
             redisUtil.unLock(Constants.lockPrefix + goodsId);
             redisUtil.setStr(Constants.goodsPrefix + goodsId + ":" + qgUser.getId(),Constants.GetGoodsStatus.getFail);
             return ReturnResultUtils.returnFail(GoodsException.GOODS_IS_CLEAR.getCode(), GoodsException.GOODS_IS_CLEAR.getMessage());
         }
+        message.setStatus(Constants.GetGoodsStatus.getSuccess);
+        message.setUserId(qgUser.getId());
+        message.setCreatedTime(new Date());
+        message.setUpdatedTime(message.getCreatedTime());
+        qgGoodsMessageService.qdtxAddQgGoodsMessage(message);
         // 发送消息
         activeMQUtils.sendQueueMessage(Constants.ActiveMQMessage.getMessage,message);
         return ReturnResultUtils.returnSuccess();
@@ -128,11 +149,16 @@ public class LocalGoodsServiceImpl implements LocalGoodsService {
         QgUser qgUser = JSONObject.parseObject(str, QgUser.class);
         String flag = redisUtil.getStr(Constants.goodsPrefix + goodsId + ":" + qgUser.getId());
         if (EmptyUtils.isEmpty(flag)){
-            return ReturnResultUtils.returnSuccess();
+            return ReturnResultUtils.returnFail(1103,null);
         }else if(EmptyUtils.isNotEmpty(flag) && flag.equals("0")){
-            return ReturnResultUtils.returnSuccess();
+            return ReturnResultUtils.returnFail(GoodsException.GOODS_IS_CLEAR.getCode(),GoodsException.GOODS_IS_CLEAR.getMessage());
         }else{
-            return ReturnResultUtils.returnFail(GoodsException.GOODS_REPEAT_GET.getCode(), GoodsException.GOODS_REPEAT_GET.getMessage());
+            return ReturnResultUtils.returnSuccess();
         }
+    }
+
+    @Override
+    public List<QgGoods> getAll() throws Exception{
+        return qgGoodsService.getQgGoodsListByMap(null);
     }
 }

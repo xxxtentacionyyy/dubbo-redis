@@ -32,7 +32,7 @@ public class QgGoodsMessageServiceImpl implements QgGoodsMessageService {
 
     @Override
     public Integer qdtxAddQgGoodsMessage(QgGoodsMessage qgGoodsMessage) throws Exception {
-        return null;
+        return qgGoodsMessageDao.insert(qgGoodsMessage);
     }
 
     @Override

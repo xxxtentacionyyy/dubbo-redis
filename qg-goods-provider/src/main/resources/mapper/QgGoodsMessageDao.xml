@@ -87,8 +87,8 @@
 
     <!--新增所有列-->
     <insert id="insert" keyProperty="id" useGeneratedKeys="true">
-        insert into qg_goods_message(userId, goodsId, status, amount, createdTime, updatedTime)
-        values (#{userId}, #{goodsId}, #{status}, #{amount}, #{createdTime}, #{updatedTime})
+        insert into qg_goods_message(id,userId, goodsId, status, amount, createdTime, updatedTime)
+        values (#{id},#{userId}, #{goodsId}, #{status}, #{amount}, #{createdTime}, #{updatedTime})
     </insert>
 
     <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">

@@ -1,6 +1,10 @@
 server:
   port: 8080
+  max-http-header-size: 8192
 spring:
+  thymeleaf:
+    prefix: classpath:/public/
+    cache: true
   dubbo:
     appname: user-consumer
     registry: zookeeper://192.168.101.4:2181
@@ -31,4 +35,4 @@ wx:
   secret: 8ba69d5639242c3bd3a69dffe84336c1
   grantType: authorization_code
   userInfoUrl: https://api.weixin.qq.com/sns/userinfo
-  successUrl: http://localhost:8888/index.html
+  successUrl: http://localhost:82/api/index.html

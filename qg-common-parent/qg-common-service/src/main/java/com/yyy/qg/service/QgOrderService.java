@@ -8,18 +8,20 @@ import java.util.Map;
 */
 public interface QgOrderService {
 
-    public QgOrder getQgOrderById(String id)throws Exception;
+    QgOrder getQgOrderById(String id)throws Exception;
 
-    public List<QgOrder>	getQgOrderListByMap(Map<String,Object> param)throws Exception;
+    List<QgOrder>	getQgOrderListByMap(Map<String,Object> param)throws Exception;
 
-    public Integer getQgOrderCountByMap(Map<String,Object> param)throws Exception;
+    Integer getQgOrderCountByMap(Map<String,Object> param)throws Exception;
 
-    public Integer qdtxAddQgOrder(QgOrder qgOrder)throws Exception;
+    Integer qdtxAddQgOrder(QgOrder qgOrder)throws Exception;
 
-    public Integer qdtxModifyQgOrder(QgOrder qgOrder)throws Exception;
+    Integer qdtxModifyQgOrder(QgOrder qgOrder)throws Exception;
 
-    public Integer qdtxDeleteQgOrderById(String id)throws Exception;
+    Integer qdtxDeleteQgOrderById(String id)throws Exception;
 
-    public Integer qdtxBatchDeleteQgOrder(String ids)throws Exception;
+    Integer qdtxBatchDeleteQgOrder(String ids)throws Exception;
+
+    QgOrder getOrderByOrderNo(String orderNo) throws Exception;
 
 }

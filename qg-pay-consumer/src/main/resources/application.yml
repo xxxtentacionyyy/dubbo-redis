@@ -1,0 +1,39 @@
+server:
+  port: 84
+spring:
+  thymeleaf:
+    prefix: classpath:/public/
+    cache: true
+  dubbo:
+    appname: pay-consumer
+    registry: zookeeper://192.168.101.4:2181
+    protocol: dubbo
+  redis:
+    port: 6379
+    host: 192.168.101.4
+    database: 0
+    password: 123456
+    pool:
+      max-idle: 8
+      max-wait: -1
+      max-active: 8
+      min-idle: 0
+    timeout: 5000
+  kafka:
+    producer:
+      bootstrap-servers: 192.168.101.4:9092
+  activemq:
+    broker-url: tcp://192.168.101.4:61616
+    in-memory: true
+    pool:
+      enabled: false
+    packages:
+      trust-all: true
+kafkaConfig:
+  moduleName: pay
+wxPayConfig:
+  appID: wxab8acb865bb1637e
+  mchID: 11473623
+  key: 2ab9071b06b9f739b950ddb41db2690d
+  notifyUrl: http://wyo9w7q4h33t.ngrok2.xiaomiqiu.cn/api/wxPayNotify
+

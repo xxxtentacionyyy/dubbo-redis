@@ -5,11 +5,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
+import java.util.Arrays;
+import java.util.List;
+
 /***
  * 配置拦截器
  */
 @Configuration
 public class InterceptorConfig extends WebMvcConfigurerAdapter {
+    private static final String[] EXCLUDE_PATH= {"/","/css/**","/js/**","/img/**","/media/**","/api/doLogin"};
 
     @Bean
     public ExceptionInterceptor exceptionInterceptor(){
@@ -23,7 +27,7 @@ public class InterceptorConfig extends WebMvcConfigurerAdapter {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(exceptionInterceptor()).addPathPatterns("/api/**");
+        registry.addInterceptor(exceptionInterceptor()).addPathPatterns("/api/**").excludePathPatterns(EXCLUDE_PATH);
         registry.addInterceptor(loginInterceptor()).addPathPatterns("/api/v/**");
         super.addInterceptors(registry);
     }

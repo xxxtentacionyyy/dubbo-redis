@@ -1,6 +1,9 @@
 server:
   port: 82
 spring:
+  thymeleaf:
+    prefix: classpath:/public/
+    cache: true
   dubbo:
     appname: goods-consumer
     registry: zookeeper://192.168.101.4:2181

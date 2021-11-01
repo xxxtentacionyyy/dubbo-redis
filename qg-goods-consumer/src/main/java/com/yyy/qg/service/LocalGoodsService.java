@@ -1,7 +1,11 @@
 package com.yyy.qg.service;
 
 import com.yyy.qg.dto.ReturnResult;
+import com.yyy.qg.pojo.QgGoods;
+import com.yyy.qg.pojo.QgGoodsMessage;
 import com.yyy.qg.pojo.vo.Message;
+
+import java.util.List;
 
 public interface LocalGoodsService {
 
@@ -17,7 +21,7 @@ public interface LocalGoodsService {
      * @param message
      * @throws Exception
      */
-    void getGoods(Message message) throws Exception;
+    void getGoods(QgGoodsMessage message) throws Exception;
 
     /**
      * 发送消息并对用户抢购记录做判断
@@ -35,5 +39,11 @@ public interface LocalGoodsService {
      * @return
      */
     ReturnResult flushGetGoodsStatus(String token, String goodsId);
+
+    /**
+     * 获取全部商品信息
+     * @return
+     */
+    List<QgGoods> getAll() throws Exception;
 
 }

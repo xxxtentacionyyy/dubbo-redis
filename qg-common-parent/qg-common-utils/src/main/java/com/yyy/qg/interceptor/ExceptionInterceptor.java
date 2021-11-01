@@ -42,7 +42,12 @@ public class ExceptionInterceptor implements HandlerInterceptor {
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object o, Exception e) throws Exception {
         //出现异常进行处理
         if(EmptyUtils.isNotEmpty(e)){
-            YYY.print(e.getMessage());
+            YYY.print("异常信息>>>>>>>>>"+e.getMessage());
+            YYY.print("堆栈跟踪>>>>>>>>>"+ e.getStackTrace());
+            YYY.print(">>>>>"+e.getCause());
+            ModelAndView m = new ModelAndView();
+            m.addObject("error",e);
+            m.setViewName("error");
             response.setContentType("text/html;charset=UTF-8");
             PrintUtil printUtil=new PrintUtil(response);
             ReturnResult returnResult= ReturnResultUtils.returnFail(CommonException.SYSTEM_EXCEPTION.getCode(),CommonException.SYSTEM_EXCEPTION.getMessage());

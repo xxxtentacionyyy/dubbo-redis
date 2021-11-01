@@ -29,4 +29,10 @@ public class Constants {
         public static final String getFail = "0";
         public static final String getSuccess = "1";
     }
+
+    public static final class PayMethod{
+        public static final Integer wxPay = 1;
+        public static final Integer aliPay = 2;
+
+    }
 }

@@ -1,20 +1,38 @@
 package com.yyy.qg.controller;
 
+import com.alibaba.dubbo.config.annotation.Reference;
 import com.alibaba.fastjson.JSONObject;
+import com.yyy.qg.common.Constants;
 import com.yyy.qg.config.WxConfig;
 import com.yyy.qg.dto.ReturnResult;
 import com.yyy.qg.dto.ReturnResultUtils;
+import com.yyy.qg.dto.exception.CommonException;
+import com.yyy.qg.pojo.QgGoods;
+import com.yyy.qg.pojo.QgUser;
+import com.yyy.qg.pojo.vo.GoodsVo;
 import com.yyy.qg.service.LocalUserService;
-import com.yyy.qg.utils.KafkaUtil;
-import com.yyy.qg.utils.UrlUtils;
-import com.yyy.qg.utils.YYY;
+import com.yyy.qg.service.QgGoodsService;
+import com.yyy.qg.service.QgGoodsTempStockService;
+import com.yyy.qg.utils.*;
+import org.apache.catalina.Session;
+import org.apache.catalina.core.ApplicationContext;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/api")
@@ -26,9 +44,16 @@ public class UserController {
     KafkaUtil kafkaUtil;
     @Autowired
     WxConfig wxConfig;
-    @RequestMapping("/hello")
+    @Resource
+    RedisUtil redisUtil;
+    @Reference
+    private QgGoodsTempStockService qgGoodsTempStockService;
+    @Reference
+    private QgGoodsService qgGoodsService;
+
+    @RequestMapping("/login.html")
     public String hello(){
-        return "hello";
+        return "login";
     }
 
     /***
@@ -38,6 +63,7 @@ public class UserController {
      * @return
      */
 //@RequestMapping("/doLogin")
+    @ResponseBody
     @PostMapping("/doLogin")
     public ReturnResult doLogin(HttpServletResponse response, String phone,
                                 String password) throws Exception{
@@ -70,6 +96,23 @@ public class UserController {
         YYY.print("日志写入完毕>>>>>>>>>>>>>>>>>>>>>>");
         String wxUserToken = localUserService.createWxUserToken(userInfoJson);
 //跳转至前端
-        return "redirect:"+wxConfig.getSuccessUrl()+"?token="+wxUserToken;
+        return "redirect:"+wxConfig.getSuccessUrl()+"/"+wxUserToken;
+    }
+
+
+    @RequestMapping("/v/loginOut")
+    @ResponseBody
+    public ReturnResult loginOut(HttpSession session, String token){
+        String str = redisUtil.getStr(token);
+        Map<String,Object> map = new HashMap<>();
+        if (EmptyUtils.isNotEmpty(str)){
+            QgUser qgUser = JSONObject.parseObject(str, QgUser.class);
+            redisUtil.del(token);
+            redisUtil.del(qgUser.getId());
+            session.invalidate();
+            return ReturnResultUtils.returnSuccess(map);
+        }
+
+        return ReturnResultUtils.returnFail(CommonException.USER_NO_LOGIN.getCode(),CommonException.USER_NO_LOGIN.getMessage());
     }
 }

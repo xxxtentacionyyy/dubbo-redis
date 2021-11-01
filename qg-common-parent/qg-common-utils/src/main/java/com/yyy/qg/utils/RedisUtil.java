@@ -2,13 +2,16 @@ package com.yyy.qg.utils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -60,6 +63,22 @@ public class RedisUtil {
      */
     public void del(String key){
         stringRedisTemplate.delete(key);
+    }
+
+    public List<String> getKeys(String patternKey){
+        ScanOptions options = ScanOptions.scanOptions().count(10000).match(patternKey+"*").build();
+        RedisSerializer<String> redisSerializer = (RedisSerializer<String>)redisTemplate.getKeySerializer();
+        Cursor cursor = (Cursor) redisTemplate.executeWithStickyConnection(redisConnection -> new ConvertingCursor<>(redisConnection.scan(options), redisSerializer::deserialize));
+        List<String> result = new ArrayList<>();
+        while (cursor.hasNext()){
+            result.add(cursor.next().toString());
+        }
+        try {
+            cursor.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return result;
     }
 
     /**
