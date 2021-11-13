@@ -28,11 +28,11 @@ kafkaConfig:
 wx:
   codeUrl: https://open.weixin.qq.com/connect/qrconnect
   appId: wx9168f76f000a0d4c
-  redirectUri: http://localhost:8080/api/wx/callBack
+  redirectUri: http://192.168.101.4:8080/api/wx/callBack
   responseType: code
   scope: snsapi_login
   accessTokenUrl: https://api.weixin.qq.com/sns/oauth2/access_token
   secret: 8ba69d5639242c3bd3a69dffe84336c1
   grantType: authorization_code
   userInfoUrl: https://api.weixin.qq.com/sns/userinfo
-  successUrl: http://localhost:82/api/index.html
+  successUrl: http://192.168.101.4:82/api/index.html

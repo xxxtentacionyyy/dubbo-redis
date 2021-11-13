@@ -14,8 +14,8 @@ public class MyTest {
                 @Override
                 public void run() {
                     int mod=(int)(1+Math.random()*(2));
-                    String dev1="http://localhost:8881";
-                    String dev2="http://localhost:8882";
+                    String dev1="http://192.168.101.4:8881";
+                    String dev2="http://192.168.101.4:8882";
                     String url=(mod==1?dev1:dev2)+"/qg?goodsId=1"+"&userId="+fi;
                     String result= UrlUtils.loadURL(url);
                     System.out.print(result);

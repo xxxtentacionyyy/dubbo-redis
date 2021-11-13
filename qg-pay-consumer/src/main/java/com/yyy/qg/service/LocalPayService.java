@@ -10,4 +10,6 @@ public interface LocalPayService {
     boolean validateDealPaySuccess(String tradeNo)throws Exception;
     Map<String,String> getWxMap(String orderId)throws Exception;
     ReturnResult checkOrderSuccess(String orderId)throws Exception;
+    boolean validateAliPay(Map<String, String[]> requestParams) throws Exception;
+    String createAliForm(String orderId , Map<String, String[]> requestParams) throws Exception;
 }

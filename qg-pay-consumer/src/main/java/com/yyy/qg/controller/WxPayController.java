@@ -4,6 +4,7 @@ import com.alibaba.dubbo.config.annotation.Reference;
 import com.github.wxpay.sdk.WXPayConstants;
 import com.github.wxpay.sdk.WXPayUtil;
 import com.yyy.qg.common.Constants;
+import com.yyy.qg.config.AlipayConfig;
 import com.yyy.qg.config.QgWxPayConfig;
 import com.yyy.qg.dto.ReturnResult;
 import com.yyy.qg.dto.ReturnResultUtils;
@@ -12,6 +13,7 @@ import com.yyy.qg.service.LocalPayService;
 import com.yyy.qg.service.QgGoodsService;
 import com.yyy.qg.service.QgOrderService;
 import com.yyy.qg.utils.EmptyUtils;
+import com.yyy.qg.utils.YYY;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -41,6 +43,9 @@ public class WxPayController {
 
     @Autowired
     private LocalPayService localPayService;
+
+    @Autowired
+    private AlipayConfig alipayConfig;
 
     private String hello;
 
@@ -129,6 +134,59 @@ public class WxPayController {
 
     }
 
+    // 去支付接口
+    @RequestMapping("/v/toPay")
+    public void toPay(String orderId,HttpServletResponse response,HttpServletRequest request) throws Exception{
+        YYY.print("请求map参数" + request.getParameterMap());
+        String aliForm = localPayService.createAliForm(orderId, request.getParameterMap());
+        YYY.print(aliForm);
+        response.setContentType("text/html; charset=UTF-8");
+        response.getWriter().write(aliForm);
+        response.getWriter().flush();
+        response.getWriter().close();
+
+    }
+
+    // 同步通知
+    @RequestMapping("/callBack")
+    public String callBack(HttpServletRequest request) throws Exception{
+        boolean b = localPayService.validateAliPay(request.getParameterMap());
+        String orderId = null;
+        if (b){
+            // 商户单号
+            String out_trade_no = new String(request.getParameter("out_trade_no").getBytes("ISO-8859-1"),"UTF-8");
+            // 支付宝订单号
+            String trade_no = new String(request.getParameter("trade_no").getBytes("ISO-8859-1"),"UTF-8");
+            orderId = localPayService.dealPaySuccess(out_trade_no, trade_no, Constants.PayMethod.aliPay);
+            return "redirect:" + alipayConfig.getPaySuccessUrl() + "?orderId=" + orderId;
+        }else{
+            return  "redirect:" + alipayConfig.getPayFailUrl() + "?orderId=" + orderId;
+        }
+
+    }
+
+    // 异步通知
+    @RequestMapping("/payNotify")
+    public void payNotify(HttpServletRequest request,HttpServletResponse response) throws Exception{
+        boolean b = localPayService.validateAliPay(request.getParameterMap());
+        if (b){
+            //商户订单号
+            String out_trade_no = new String(request.getParameter("out_trade_no").getBytes("ISO-8859-1"),"UTF-8");
+            //支付宝交易号
+            String trade_no = new String(request.getParameter("trade_no").getBytes("ISO-8859-1"),"UTF-8");
+            boolean flag = localPayService.validateDealPaySuccess(trade_no);
+            if (!flag){
+                localPayService.dealPaySuccess(out_trade_no,trade_no,Constants.PayMethod.aliPay);
+            }
+            response.getWriter().println("success");
+
+        }else{
+            response.getWriter().println("fail");
+        }
+        response.getWriter().flush();
+        response.getWriter().close();
+    }
+
     /**
      * 轮询查询订单是否支付成功
      * @param orderId
@@ -152,8 +210,9 @@ public class WxPayController {
     }
 
     @ResponseBody
-    @RequestMapping("hello")
-    public String hello(){
+    @RequestMapping("/hello")
+    public String hello(String orderId){
+        hello = orderId;
         return hello;
     }
 }

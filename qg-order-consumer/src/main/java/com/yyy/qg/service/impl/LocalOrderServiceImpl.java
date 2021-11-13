@@ -35,6 +35,7 @@ public class LocalOrderServiceImpl implements LocalOrderService {
     @Autowired
     private RedisUtil redisUtil;
 
+    @SuppressWarnings("unchecked")
     @Override
     public ReturnResult<List<OrderVo>> queryOrderList(String token) throws Exception {
         String str = redisUtil.getStr(token);
@@ -67,6 +68,7 @@ public class LocalOrderServiceImpl implements LocalOrderService {
         return ReturnResultUtils.returnFail(OrderException.ORDER_NOT_EXIST.getCode(), OrderException.ORDER_NOT_EXIST.getMessage());
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public ReturnResult<QgOrder> queryOrderById(String orderId, String token) throws Exception {
         QgOrder qgOrder = qgOrderService.getQgOrderById(orderId);

@@ -2,16 +2,16 @@ var environment=0; //0表示测试环境 1:线上环境
 var dialog={};
 var ReqUrl={
     GoodsReqUrl:function () {
-        return (environment==0?"http://localhost:82/api/":"http://goods.local.com/api/");
+        return (environment==0?"http://192.168.101.4:82/api/":"http://goods.local.com/api/");
     },
     OrdeReqUrl:function () {
-        return (environment==0?"http://localhost:83/api/":"http://order.local.com/api/");
+        return (environment==0?"http://192.168.101.4:83/api/":"http://order.local.com/api/");
     },
     LoginReqUrl:function() {
-        return (environment==0?"http://localhost:8080/api/":"http://user.local.com/api/");
+        return (environment==0?"http://192.168.101.4:8080/api/":"http://user.local.com/api/");
     },
     PayReqUrl:function () {
-        return (environment==0?"http://localhost:84/api/":"http://pay.local.com/api/");
+        return (environment==0?"http://192.168.101.4:84/api/":"http://pay.local.com/api/");
     }
 };
 //设置cookie

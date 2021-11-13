@@ -21,6 +21,7 @@
         <module name="qg-goods-consumer" />
         <module name="qg-order-provider" />
         <module name="springboot-redis-01" />
+        <module name="qg-common-dto" />
       </profile>
     </annotationProcessing>
   </component>

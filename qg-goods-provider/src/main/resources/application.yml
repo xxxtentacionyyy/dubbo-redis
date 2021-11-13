@@ -10,7 +10,7 @@ spring:
     appname: goods-provider
     registry: zookeeper://192.168.101.4:2181
     protocol: dubbo
-    port: 20882
+    port: 20881
   redis:
     port: 6379
     host: 192.168.101.4
